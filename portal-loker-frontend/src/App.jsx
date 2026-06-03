@@ -21,10 +21,16 @@ function App() {
     location: "",
     type: "Full-time",
   });
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (searchQuery = "") => {
     try {
-      const res = await fetch("http://localhost:5000/api/jobs");
+      // Jika ada kata kunci, tambahkan ?search=... ke URL
+      const url = searchQuery
+        ? `http://localhost:5000/api/jobs?search=${searchQuery}`
+        : "http://localhost:5000/api/jobs";
+
+      const res = await fetch(url);
       const data = await res.json();
       setJobs(data);
     } catch (err) {
@@ -131,11 +137,22 @@ function App() {
     }
   };
 
-  // FUNGSI BARU: Melamar Pekerjaan
   const handleApply = async (jobId) => {
     if (!token) return alert("Silakan login sebagai pelamar terlebih dahulu!");
     if (userRole === "perusahaan")
       return alert("Akun perusahaan tidak bisa melamar pekerjaan!");
+
+    // Memunculkan kotak input pop-up bawaan browser
+    const cvLink = window.prompt(
+      "Masukkan Link CV atau Portofolio Anda\n(Contoh: Tautan Google Drive atau LinkedIn):",
+    );
+
+    // Jika user menekan tombol 'Cancel' pada pop-up, hentikan proses
+    if (cvLink === null) return;
+
+    // Jika user menekan OK tapi kolomnya kosong
+    if (cvLink.trim() === "")
+      return alert("Gagal melamar: Link CV wajib diisi!");
 
     try {
       const res = await fetch("http://localhost:5000/api/applications", {
@@ -144,14 +161,85 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ job_id: jobId }),
+        body: JSON.stringify({ job_id: jobId, cv_link: cvLink }), // Mengirim cv_link
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      alert("Lamaran berhasil dikirim! HRD akan segera meninjau.");
+      alert(
+        "Lamaran berhasil dikirim beserta CV Anda! HRD akan segera meninjau.",
+      );
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  // ==========================================
+  // FUNGSI BARU: HRD Mengubah Status Lamaran
+  // ==========================================
+  const handleUpdateStatus = async (applicationId, newStatus) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/applications/${applicationId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        },
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      // Tarik ulang data pelamar agar tabel langsung ter-update di layar
+      fetchApplications();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // ==========================================
+  // FUNGSI BARU: Ekspor Data ke CSV (Digital Reporting)
+  // ==========================================
+  const handleExportCSV = () => {
+    if (applications.length === 0)
+      return alert("Belum ada data untuk diekspor!");
+
+    // 1. Membuat Header Kolom
+    const headers = [
+      "Nama Pelamar",
+      "Email",
+      "Posisi",
+      "Link CV",
+      "Status Saat Ini",
+    ];
+
+    // 2. Mengambil dan merapikan data dari state 'applications'
+    const rows = applications.map((app) => [
+      `"${app.applicant_name}"`, // Diberi tanda kutip agar aman jika ada koma di nama
+      `"${app.email}"`,
+      `"${app.job_title}"`,
+      `"${app.cv_link ? app.cv_link : "Tidak ada link"}"`,
+      `"${app.status}"`,
+    ]);
+
+    // 3. Menggabungkan Header dan Baris Data menjadi format teks CSV
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
+
+    // 4. Membuat file virtual dan memicu proses Download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "Rekap_Laporan_Rekrutmen.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -194,6 +282,33 @@ function App() {
             <h1>Portal Karier Kawasan Industri</h1>
             <p>Temukan pekerjaan terbaik di perusahaan manufaktur terkemuka.</p>
           </header>
+          {/* KOTAK PENCARIAN BARU */}
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Cari posisi (ex: Operator), perusahaan, atau lokasi..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && fetchJobs(searchTerm)}
+            />
+            <button
+              onClick={() => fetchJobs(searchTerm)}
+              className="btn-accent"
+            >
+              Cari Lowongan
+            </button>
+            {searchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  fetchJobs("");
+                }}
+                className="btn-clear"
+              >
+                Reset
+              </button>
+            )}
+          </div>
           <main className="job-list">
             {jobs.map((job) => (
               <div key={job.id} className="job-card">
@@ -219,19 +334,36 @@ function App() {
 
       {/* DASHBOARD HRD - LIHAT LAMARAN */}
       {view === "applications" && (
-        <div className="auth-box" style={{ maxWidth: "700px" }}>
-          <h2>Daftar Pelamar Masuk</h2>
+        <div className="auth-box" style={{ maxWidth: "850px" }}>
+          {/* HEADER DASHBOARD DENGAN TOMBOL EKSPOR */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <h2 style={{ marginBottom: 0 }}>Daftar Pelamar Masuk</h2>
+            {applications.length > 0 && (
+              <button onClick={handleExportCSV} className="btn-export">
+                📥 Unduh Laporan (CSV)
+              </button>
+            )}
+          </div>
+
           {applications.length === 0 ? (
             <p style={{ textAlign: "center" }}>Belum ada pelamar saat ini.</p>
           ) : (
-            // UBAH DARI SINI: Tambahkan pembungkus div dan hapus style inline pada table
             <div className="table-container">
               <table>
                 <thead>
                   <tr>
                     <th>Nama Pelamar</th>
                     <th>Posisi</th>
-                    <th>Status</th>
+                    <th>File CV</th>
+                    <th>Status Saat Ini</th>
+                    <th>Aksi HRD</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,15 +375,70 @@ function App() {
                         <small style={{ color: "#64748b" }}>{app.email}</small>
                       </td>
                       <td>{app.job_title}</td>
+
                       <td>
-                        <span className="status-badge">{app.status}</span>
+                        {app.cv_link ? (
+                          <a
+                            href={
+                              app.cv_link.startsWith("http")
+                                ? app.cv_link
+                                : `https://${app.cv_link}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "#2563eb",
+                              fontWeight: "600",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            Lihat Dokumen
+                          </a>
+                        ) : (
+                          <span style={{ color: "#9ca3af" }}>-</span>
+                        )}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`status-badge ${app.status === "Ditolak" ? "status-rejected" : app.status === "Diterima" ? "status-accepted" : ""}`}
+                        >
+                          {app.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="action-buttons">
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(app.id, "Interview")
+                            }
+                            className="btn-action btn-interview"
+                          >
+                            Interview
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(app.id, "Diterima")
+                            }
+                            className="btn-action btn-accept"
+                          >
+                            Terima
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(app.id, "Ditolak")
+                            }
+                            className="btn-action btn-reject"
+                          >
+                            Tolak
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            // SAMPAI SINI
           )}
         </div>
       )}

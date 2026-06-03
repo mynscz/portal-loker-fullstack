@@ -16,15 +16,27 @@ app.get("/", (req, res) => {
 });
 
 // Endpoint untuk MELIHAT daftar lowongan kerja
+// Endpoint untuk MELIHAT daftar lowongan kerja (DENGAN FITUR PENCARIAN)
 app.get("/api/jobs", async (req, res) => {
   try {
-    // Mengambil semua data dari tabel jobs dan mengurutkannya dari yang terbaru
-    const result = await pool.query(
-      "SELECT * FROM jobs ORDER BY created_at DESC",
-    );
+    const { search } = req.query; // Menangkap kata kunci dari URL
 
-    // Mengirimkan hasil query ke frontend
-    res.json(result.rows);
+    if (search) {
+      // Jika ada pencarian, cari di kolom title, company, ATAU location
+      const result = await pool.query(
+        `SELECT * FROM jobs 
+                 WHERE title ILIKE $1 OR company ILIKE $1 OR location ILIKE $1 
+                 ORDER BY created_at DESC`,
+        [`%${search}%`],
+      );
+      res.json(result.rows);
+    } else {
+      // Jika tidak ada pencarian, tampilkan semua
+      const result = await pool.query(
+        "SELECT * FROM jobs ORDER BY created_at DESC",
+      );
+      res.json(result.rows);
+    }
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -61,7 +73,7 @@ app.post("/api/jobs", auth, async (req, res) => {
 // ENDPOINT LAMARAN (APPLICATIONS)
 // ==========================================
 
-// 1. Pelamar Melamar Pekerjaan
+// 1. Pelamar Melamar Pekerjaan (DIPERBARUI DENGAN CV)
 app.post("/api/applications", auth, async (req, res) => {
   try {
     if (req.user.role !== "pelamar") {
@@ -70,9 +82,8 @@ app.post("/api/applications", auth, async (req, res) => {
         .json({ message: "Hanya akun pelamar yang bisa melamar pekerjaan!" });
     }
 
-    const { job_id } = req.body;
+    const { job_id, cv_link } = req.body; // Menangkap cv_link dari React
 
-    // Cek apakah user sudah melamar posisi ini sebelumnya
     const cekLamaran = await pool.query(
       "SELECT * FROM applications WHERE user_id = $1 AND job_id = $2",
       [req.user.id, job_id],
@@ -83,10 +94,10 @@ app.post("/api/applications", auth, async (req, res) => {
         .json({ message: "Anda sudah melamar untuk posisi ini!" });
     }
 
-    // Masukkan data lamaran ke database
+    // Memasukkan data lamaran beserta link CV ke database
     await pool.query(
-      "INSERT INTO applications (user_id, job_id) VALUES ($1, $2)",
-      [req.user.id, job_id],
+      "INSERT INTO applications (user_id, job_id, cv_link) VALUES ($1, $2, $3)",
+      [req.user.id, job_id, cv_link],
     );
     res.json({ message: "Berhasil melamar pekerjaan!" });
   } catch (err) {
@@ -96,20 +107,16 @@ app.post("/api/applications", auth, async (req, res) => {
 });
 
 // 2. Perusahaan Melihat Daftar Pelamar
+// 2. Perusahaan Melihat Daftar Pelamar (DIPERBARUI DENGAN CV)
 app.get("/api/applications", auth, async (req, res) => {
   try {
     if (req.user.role !== "perusahaan") {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Akses ditolak! Hanya perusahaan yang bisa melihat data pelamar.",
-        });
+      return res.status(403).json({ message: "Akses ditolak!" });
     }
 
-    // Menggabungkan (JOIN) tabel lamaran, user, dan lowongan agar HRD bisa melihat nama dan posisinya
+    // Tambahkan a.cv_link pada baris SELECT
     const result = await pool.query(`
-            SELECT a.id, u.name AS applicant_name, u.email, j.title AS job_title, a.status, a.created_at
+            SELECT a.id, u.name AS applicant_name, u.email, j.title AS job_title, a.status, a.cv_link, a.created_at
             FROM applications a
             JOIN users u ON a.user_id = u.id
             JOIN jobs j ON a.job_id = j.id
@@ -117,6 +124,37 @@ app.get("/api/applications", auth, async (req, res) => {
         `);
 
     res.json(result.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+// 3. Perusahaan Mengubah Status Lamaran (Terima / Tolak / Interview)
+app.put("/api/applications/:id", auth, async (req, res) => {
+  try {
+    // Hanya HRD perusahaan yang boleh mengubah status
+    if (req.user.role !== "perusahaan") {
+      return res.status(403).json({ message: "Akses ditolak!" });
+    }
+
+    const { id } = req.params; // Mengambil ID lamaran dari URL
+    const { status } = req.body; // Mengambil status baru dari frontend
+
+    // Update data di database PostgreSQL
+    const updateLamaran = await pool.query(
+      "UPDATE applications SET status = $1 WHERE id = $2 RETURNING *",
+      [status, id],
+    );
+
+    if (updateLamaran.rows.length === 0) {
+      return res.status(404).json({ message: "Data lamaran tidak ditemukan!" });
+    }
+
+    res.json({
+      message: "Status lamaran berhasil diperbarui!",
+      data: updateLamaran.rows[0],
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");

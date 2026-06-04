@@ -1,4 +1,6 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -10,6 +12,31 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// 1. Buat folder 'uploads' bisa diakses oleh publik (Frontend)
+app.use("/uploads", express.static("uploads"));
+
+// 2. Konfigurasi Multer untuk penyimpanan file
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Simpan ke folder uploads
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+// TAMBAHAN BARU: Filter khusus agar HANYA menerima PDF
+const filterPDF = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true); // File diizinkan
+  } else {
+    cb(new Error("Hanya file berformat PDF yang diizinkan!"), false); // File ditolak
+  }
+};
+
+// Masukkan filterPDF ke dalam multer
+const upload = multer({ storage: storage, fileFilter: filterPDF });
 
 app.get("/", (req, res) => {
   res.send("Server Portal Lowongan Kerja API berjalan dengan baik!");
@@ -154,6 +181,55 @@ app.put("/api/applications/:id", auth, async (req, res) => {
     res.json({
       message: "Status lamaran berhasil diperbarui!",
       data: updateLamaran.rows[0],
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+// ==========================================
+// ENDPOINT PROFIL USER
+// ==========================================
+
+// 1. Ambil Data Profil Pengguna yang Sedang Login
+app.get("/api/profile", auth, async (req, res) => {
+  try {
+    const user = await pool.query(
+      "SELECT id, name, email, role, phone, skills, bio, cv_link FROM users WHERE id = $1",
+      [req.user.id],
+    );
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+    res.json(user.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+// Perbarui Data Profil Pengguna (DENGAN FILE UPLOAD)
+app.put("/api/profile", auth, upload.single("cv_file"), async (req, res) => {
+  try {
+    const { phone, skills, bio } = req.body;
+    let cv_link = req.body.cv_link; // cv_link lama (jika tidak upload file baru)
+
+    // Jika ada file fisik baru yang diunggah, timpa cv_link dengan path folder file baru
+    if (req.file) {
+      cv_link = "/uploads/" + req.file.filename;
+    }
+
+    const updatedProfile = await pool.query(
+      `UPDATE users 
+             SET phone = $1, skills = $2, bio = $3, cv_link = $4 
+             WHERE id = $5 RETURNING id, name, email, role, phone, skills, bio, cv_link`,
+      [phone, skills, bio, cv_link, req.user.id],
+    );
+
+    res.json({
+      message: "Profil berhasil diperbarui!",
+      data: updatedProfile.rows[0],
     });
   } catch (err) {
     console.error(err.message);

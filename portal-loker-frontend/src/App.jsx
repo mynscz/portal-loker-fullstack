@@ -8,6 +8,15 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [userRole, setUserRole] = useState(localStorage.getItem("role") || "");
 
+  // DIPERBARUI: Tambahkan state cv_file untuk menampung file fisik
+  const [profile, setProfile] = useState({
+    phone: "",
+    skills: "",
+    bio: "",
+    cv_link: "",
+    cv_file: null,
+  });
+
   const [authForm, setAuthForm] = useState({
     name: "",
     email: "",
@@ -25,11 +34,9 @@ function App() {
 
   const fetchJobs = async (searchQuery = "") => {
     try {
-      // Jika ada kata kunci, tambahkan ?search=... ke URL
       const url = searchQuery
         ? `http://localhost:5000/api/jobs?search=${searchQuery}`
         : "http://localhost:5000/api/jobs";
-
       const res = await fetch(url);
       const data = await res.json();
       setJobs(data);
@@ -50,10 +57,34 @@ function App() {
     }
   };
 
+  const fetchProfile = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("http://localhost:5000/api/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProfile({
+          phone: data.phone || "",
+          skills: data.skills || "",
+          bio: data.bio || "",
+          cv_link: data.cv_link || "",
+          cv_file: null,
+        });
+      }
+    } catch (err) {
+      console.error("Gagal mengambil data profil:", err);
+    }
+  };
+
   useEffect(() => {
     fetchJobs();
-    if (token && userRole === "perusahaan") {
-      fetchApplications();
+    if (token) {
+      fetchProfile();
+      if (userRole === "perusahaan") {
+        fetchApplications();
+      }
     }
   }, [token, userRole]);
 
@@ -61,6 +92,15 @@ function App() {
     setAuthForm({ ...authForm, [e.target.name]: e.target.value });
   const handleJobChange = (e) =>
     setJobForm({ ...jobForm, [e.target.name]: e.target.value });
+
+  // DIPERBARUI: Mendeteksi jika yang diubah adalah file
+  const handleProfileChange = (e) => {
+    if (e.target.type === "file") {
+      setProfile({ ...profile, cv_file: e.target.files[0] });
+    } else {
+      setProfile({ ...profile, [e.target.name]: e.target.value });
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -114,6 +154,7 @@ function App() {
     localStorage.clear();
     setToken("");
     setUserRole("");
+    setProfile({ phone: "", skills: "", bio: "", cv_link: "", cv_file: null });
     setView("home");
   };
 
@@ -137,22 +178,24 @@ function App() {
     }
   };
 
+  // DIPERBARUI: Mencegah lamar kerja jika belum mengunggah file di profil
   const handleApply = async (jobId) => {
     if (!token) return alert("Silakan login sebagai pelamar terlebih dahulu!");
     if (userRole === "perusahaan")
       return alert("Akun perusahaan tidak bisa melamar pekerjaan!");
 
-    // Memunculkan kotak input pop-up bawaan browser
-    const cvLink = window.prompt(
-      "Masukkan Link CV atau Portofolio Anda\n(Contoh: Tautan Google Drive atau LinkedIn):",
+    if (!profile.cv_link || profile.cv_link.trim() === "") {
+      alert(
+        "Profil Anda belum memiliki file CV.\nSilakan masuk ke menu 'Profil Saya' dan unggah dokumen CV Anda terlebih dahulu sebelum melamar.",
+      );
+      setView("profile");
+      return;
+    }
+
+    const yakin = window.confirm(
+      "Sistem akan otomatis melampirkan File CV dari profil Anda. Lanjutkan melamar?",
     );
-
-    // Jika user menekan tombol 'Cancel' pada pop-up, hentikan proses
-    if (cvLink === null) return;
-
-    // Jika user menekan OK tapi kolomnya kosong
-    if (cvLink.trim() === "")
-      return alert("Gagal melamar: Link CV wajib diisi!");
+    if (!yakin) return;
 
     try {
       const res = await fetch("http://localhost:5000/api/applications", {
@@ -161,21 +204,18 @@ function App() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ job_id: jobId, cv_link: cvLink }), // Mengirim cv_link
+        body: JSON.stringify({ job_id: jobId, cv_link: profile.cv_link }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       alert(
-        "Lamaran berhasil dikirim beserta CV Anda! HRD akan segera meninjau.",
+        "Lamaran berhasil dikirim beserta File CV! HRD akan meninjau data Anda.",
       );
     } catch (err) {
       alert(err.message);
     }
   };
 
-  // ==========================================
-  // FUNGSI BARU: HRD Mengubah Status Lamaran
-  // ==========================================
   const handleUpdateStatus = async (applicationId, newStatus) => {
     try {
       const res = await fetch(
@@ -189,25 +229,17 @@ function App() {
           body: JSON.stringify({ status: newStatus }),
         },
       );
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-
-      // Tarik ulang data pelamar agar tabel langsung ter-update di layar
       fetchApplications();
     } catch (err) {
       alert(err.message);
     }
   };
 
-  // ==========================================
-  // FUNGSI BARU: Ekspor Data ke CSV (Digital Reporting)
-  // ==========================================
   const handleExportCSV = () => {
     if (applications.length === 0)
       return alert("Belum ada data untuk diekspor!");
-
-    // 1. Membuat Header Kolom
     const headers = [
       "Nama Pelamar",
       "Email",
@@ -215,23 +247,17 @@ function App() {
       "Link CV",
       "Status Saat Ini",
     ];
-
-    // 2. Mengambil dan merapikan data dari state 'applications'
     const rows = applications.map((app) => [
-      `"${app.applicant_name}"`, // Diberi tanda kutip agar aman jika ada koma di nama
+      `"${app.applicant_name}"`,
       `"${app.email}"`,
       `"${app.job_title}"`,
-      `"${app.cv_link ? app.cv_link : "Tidak ada link"}"`,
+      `"${app.cv_link ? (app.cv_link.startsWith("http") ? app.cv_link : `http://localhost:5000${app.cv_link}`) : "Tidak ada dokumen"}"`,
       `"${app.status}"`,
     ]);
-
-    // 3. Menggabungkan Header dan Baris Data menjadi format teks CSV
     const csvContent = [
       headers.join(","),
       ...rows.map((row) => row.join(",")),
     ].join("\n");
-
-    // 4. Membuat file virtual dan memicu proses Download
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -242,6 +268,42 @@ function App() {
     document.body.removeChild(link);
   };
 
+  // DIPERBARUI: Menggunakan FormData untuk mengirim file fisik
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append("phone", profile.phone);
+      formData.append("skills", profile.skills);
+      formData.append("bio", profile.bio);
+
+      // Jika pengguna memilih file baru, kirim file tersebut
+      if (profile.cv_file) {
+        formData.append("cv_file", profile.cv_file);
+      } else {
+        formData.append("cv_link", profile.cv_link || "");
+      }
+
+      const res = await fetch("http://localhost:5000/api/profile", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // PENTING: Jangan tulis 'Content-Type' di sini, biarkan browser mengaturnya jadi multipart/form-data
+        },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      // Update state dengan link file yang baru dari server
+      setProfile({ ...profile, cv_link: data.data.cv_link, cv_file: null });
+      alert("Profil dan File CV Anda berhasil disimpan!");
+      setView("home");
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="container">
       <nav className="navbar">
@@ -250,6 +312,10 @@ function App() {
         </div>
         <div className="nav-links">
           <button onClick={() => setView("home")}>Beranda</button>
+
+          {token && userRole === "pelamar" && (
+            <button onClick={() => setView("profile")}>Profil Saya</button>
+          )}
 
           {token && userRole === "perusahaan" && (
             <>
@@ -282,7 +348,6 @@ function App() {
             <h1>Portal Karier Kawasan Industri</h1>
             <p>Temukan pekerjaan terbaik di perusahaan manufaktur terkemuka.</p>
           </header>
-          {/* KOTAK PENCARIAN BARU */}
           <div className="search-container">
             <input
               type="text"
@@ -332,10 +397,143 @@ function App() {
         </>
       )}
 
+      {/* HALAMAN PROFIL SAYA (DIPERBARUI) */}
+      {view === "profile" && (
+        <div className="auth-box">
+          <h2>Kelola Profil & CV</h2>
+          <form onSubmit={handleSaveProfile}>
+            <label
+              style={{
+                color: "var(--text-heading)",
+                fontSize: "0.9rem",
+                fontWeight: "600",
+              }}
+            >
+              Nomor Telepon / WhatsApp
+            </label>
+            <input
+              type="text"
+              name="phone"
+              placeholder="Contoh: 0813xxxxxxxx"
+              value={profile.phone}
+              onChange={handleProfileChange}
+              required
+            />
+
+            <label
+              style={{
+                color: "var(--text-heading)",
+                fontSize: "0.9rem",
+                fontWeight: "600",
+              }}
+            >
+              Keahlian Utama
+            </label>
+
+            {/* Input teks biasa yang dihubungkan ke datalist melalui ID */}
+            <input
+              type="text"
+              name="skills"
+              list="skills-suggestions"
+              placeholder="Ketik keahlian Anda atau pilih dari daftar..."
+              value={profile.skills}
+              onChange={handleProfileChange}
+              required
+            />
+
+            {/* Datalist menyimpan daftar saran kata (suggestions) yang relevan untuk dunia industri */}
+            <datalist id="skills-suggestions">
+              {/* Area Produksi & Manufaktur */}
+              <option value="Operator Produksi" />
+              <option value="Operator Packing" />
+              <option value="Operator Assembling" />
+              <option value="Operator Injection Molding" />
+              <option value="Operator CNC / Machining" />
+              <option value="Operator Forklift / Material Handling" />
+
+              {/* Area Engineering & Maintenance */}
+              <option value="Teknisi Maintenance Mesin" />
+              <option value="Teknisi Kelistrikan (Elektro)" />
+              <option value="Drafter (AutoCAD / SolidWorks)" />
+              <option value="Mekanik Industri & Otomotif" />
+
+              {/* Area Kualitas, Gudang & Supply Chain */}
+              <option value="Quality Control (QC)" />
+              <option value="Quality Assurance (QA)" />
+              <option value="Staff Gudang / Warehouse" />
+              <option value="PPIC (Production Planning)" />
+              <option value="Purchasing / Pengadaan Barang" />
+
+              {/* Area Finance & Administrasi Pabrik */}
+              <option value="Accounting & Finance" />
+              <option value="Cost Accounting / Akuntansi Biaya" />
+              <option value="Administrasi Produksi & Data Entry" />
+              <option value="Staff HSE (Kesehatan & Keselamatan Kerja)" />
+              <option value="Staff HRD / Personalia" />
+
+              {/* Area Digitalisasi Industri & IT */}
+              <option value="Web Developer (Laravel / React)" />
+              <option value="IT Support & Jaringan Pabrik" />
+              <option value="Database Administrator" />
+              <option value="Data Science & Clustering Analysis" />
+              <option value="Machine Learning / Object Detection" />
+            </datalist>
+
+            <label
+              style={{
+                color: "var(--text-heading)",
+                fontSize: "0.9rem",
+                fontWeight: "600",
+              }}
+            >
+              Tentang Saya / Bio Singkat
+            </label>
+            <input
+              type="text"
+              name="bio"
+              placeholder="Tulis deskripsi singkat diri Anda"
+              value={profile.bio}
+              onChange={handleProfileChange}
+              required
+            />
+
+            <label
+              style={{
+                color: "var(--text-heading)",
+                fontSize: "0.9rem",
+                fontWeight: "600",
+              }}
+            >
+              Unggah Dokumen CV (Wajib PDF)
+            </label>
+            <input
+              type="file"
+              name="cv_file"
+              accept=".pdf" /* HANYA MENERIMA .pdf */
+              onChange={handleProfileChange}
+              style={{
+                padding: "12px",
+                backgroundColor: "var(--input-bg)",
+                color: "var(--text-body)",
+              }}
+            />
+            {profile.cv_link && (
+              <small style={{ color: "var(--success)" }}>
+                ✓ Anda sudah mengunggah CV. Pilih file PDF baru hanya jika ingin
+                mengganti.
+              </small>
+            )}
+
+            <button type="submit" className="auth-btn">
+              Simpan Profil & Dokumen
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* DASHBOARD HRD - LIHAT LAMARAN */}
       {view === "applications" && (
         <div className="auth-box" style={{ maxWidth: "850px" }}>
-          {/* HEADER DASHBOARD DENGAN TOMBOL EKSPOR */}
           <div
             style={{
               display: "flex",
@@ -351,7 +549,6 @@ function App() {
               </button>
             )}
           </div>
-
           {applications.length === 0 ? (
             <p style={{ textAlign: "center" }}>Belum ada pelamar saat ini.</p>
           ) : (
@@ -376,23 +573,24 @@ function App() {
                       </td>
                       <td>{app.job_title}</td>
 
+                      {/* DIPERBARUI: Tautan membuka file dari server lokal kita */}
                       <td>
                         {app.cv_link ? (
                           <a
                             href={
                               app.cv_link.startsWith("http")
                                 ? app.cv_link
-                                : `https://${app.cv_link}`
+                                : `http://localhost:5000${app.cv_link}`
                             }
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              color: "#2563eb",
+                              color: "#3b82f6",
                               fontWeight: "600",
                               textDecoration: "underline",
                             }}
                           >
-                            Lihat Dokumen
+                            Unduh Dokumen
                           </a>
                         ) : (
                           <span style={{ color: "#9ca3af" }}>-</span>

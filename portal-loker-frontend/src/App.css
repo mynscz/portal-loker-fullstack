@@ -1,37 +1,36 @@
 /* ==========================================================================
-   1. CORPORATE FORMAL LIGHT THEME
+   1. MODERN PLAYFUL GEN Z THEME
    ========================================================================== */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --font-main: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-main: "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Latar Belakang & Kartu (Cerah, Bersih, Rapi) */
-  --bg-color: #f3f4f6;
+  /* Latar Belakang (Lebih hangat dan lembut) */
+  --bg-color: #f8fafc;
   --card-bg: #ffffff;
 
-  /* Warna Aksen Korporat (Corporate Navy Blue) */
-  --primary: #1e3a8a;
-  --primary-hover: #172554;
-  --primary-light: #eff6ff;
+  /* Warna Aksen Kekinian (Vibrant Indigo & Soft Purple) */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-light: #e0e7ff;
+  --gradient-bg: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
 
-  /* Warna Teks (Kontras Tinggi & Tegas) */
-  --text-heading: #111827; /* Hitam tegas untuk judul */
-  --text-body: #374151; /* Abu-abu gelap untuk teks bacaan */
-  --text-muted: #6b7280; /* Abu-abu untuk teks pendukung */
+  /* Warna Teks */
+  --text-heading: #1e293b;
+  --text-body: #64748b;
 
-  /* Garis Batas (Tegas dan Jelas) */
-  --border-color: #d1d5db;
-  --input-border: #9ca3af;
+  /* Garis Batas & Radius (Sangat membulat ala aplikasi kekinian) */
+  --border-color: #f1f5f9;
+  --input-border: #e2e8f0;
+  --radius-sm: 16px; /* Sudut lebih bulat */
+  --radius-md: 24px; /* Sudut kartu sangat bulat */
+  --radius-pill: 50px; /* Bentuk pil untuk tombol */
 
-  /* Bentuk Sudut (Lebih kotak = lebih formal) */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-
-  /* Bayangan Tipis */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --transition: all 0.2s ease-in-out;
+  /* Bayangan (Lembut dan mengambang) */
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 10px 30px rgba(99, 102, 241, 0.15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transisi lebih memantul (bouncy) */
 }
 
 * {
@@ -45,56 +44,62 @@ body {
   font-family: var(--font-main);
   background-color: var(--bg-color);
   color: var(--text-body);
-  line-height: 1.5;
-  letter-spacing: -0.01em; /* Membuat teks terlihat lebih padat dan resmi */
+  line-height: 1.6;
+  overflow-x: hidden; /* MENCEGAH LAYAR HP GESER KE SAMPING */
+  width: 100%;
 }
 
 .container {
   max-width: 1040px;
   margin: 0 auto;
-  padding: 0 24px 80px;
+  padding: 0 20px 80px;
 }
 
 /* ==========================================================================
-   2. NAVBAR (Solid & Profesional)
+   2. NAVBAR (Floating Bubble Style)
    ========================================================================== */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--card-bg);
-  padding: 16px 32px;
-  margin: 0 0 32px 0; /* Menempel ke atas seperti web perusahaan */
-  border-bottom: 2px solid var(--border-color);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 12px 24px;
+  margin: 24px auto 40px;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-sm);
   position: sticky;
-  top: 0;
+  top: 20px;
   z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  max-width: 95%; /* Tidak nempel ujung layar */
 }
 
 .nav-brand {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  color: var(--primary);
+  background: var(--gradient-bg);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   cursor: pointer;
   letter-spacing: -0.5px;
-  text-transform: uppercase; /* Kesan instansi resmi */
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .nav-links button {
   background: none;
   border: none;
-  padding: 8px 12px;
-  color: var(--text-body);
+  padding: 10px 18px;
+  color: var(--text-heading);
   font-weight: 600;
   font-size: 0.95rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   cursor: pointer;
 }
 
@@ -104,50 +109,65 @@ body {
 }
 
 .nav-links .btn-accent {
-  background-color: var(--primary);
+  background: var(--gradient-bg);
   color: #ffffff !important;
-  border: 1px solid var(--primary-hover);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
 }
 
 .nav-links .btn-accent:hover {
-  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
 }
 
 .nav-links .btn-logout {
-  color: #b91c1c;
-  font-weight: 600;
+  color: #ef4444;
 }
 .nav-links .btn-logout:hover {
   background-color: #fef2f2;
 }
 
 /* ==========================================================================
-   3. HEADER / HERO SECTION (Wibawa Korporat)
+   3. HEADER / HERO SECTION (Vibrant & Welcoming)
    ========================================================================== */
 header {
   text-align: center;
-  background-color: #111827; /* Hitam/Navy pekat */
+  background: var(--gradient-bg);
   color: #ffffff;
-  padding: 60px 40px;
+  padding: 70px 30px;
   border-radius: var(--radius-md);
-  margin-bottom: 32px;
-  box-shadow: var(--shadow-md);
-  border-bottom: 4px solid var(--primary); /* Aksen bawah */
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pola dekorasi melingkar di background header */
+header::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 header h1 {
-  font-size: 2.4rem;
-  margin-bottom: 12px;
+  font-size: 2.6rem;
+  margin-bottom: 16px;
   font-weight: 800;
   letter-spacing: -1px;
-  color: #ffffff; /* <-- TAMBAHKAN BARIS INI */
+  color: #ffffff;
 }
 
 header p {
   font-size: 1.1rem;
-  color: #d1d5db;
-  max-width: 650px;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
   margin: 0 auto;
+  font-weight: 400;
 }
 
 /* ==========================================================================
@@ -158,197 +178,191 @@ header p {
   gap: 12px;
   margin-bottom: 32px;
   background-color: var(--card-bg);
-  padding: 20px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: var(--radius-pill);
   box-shadow: var(--shadow-sm);
 }
 
 .search-container input {
   flex: 1;
-  padding: 12px 16px;
-  background-color: #ffffff;
-  border: 1px solid var(--input-border);
-  border-radius: var(--radius-sm);
+  padding: 14px 24px;
+  background-color: #f8fafc;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
   font-size: 1rem;
   color: var(--text-heading);
   font-family: var(--font-main);
+  font-weight: 500;
 }
 
 .search-container input:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
+  background-color: #ffffff;
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 4px var(--primary-light);
 }
 
 .search-container button {
-  padding: 12px 24px;
-  border-radius: var(--radius-sm);
+  padding: 14px 28px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   border: none;
   cursor: pointer;
+  letter-spacing: 0.5px;
 }
 
 .btn-clear {
-  background-color: #f3f4f6;
+  background-color: #f1f5f9;
   color: var(--text-body);
-  border: 1px solid var(--border-color) !important;
 }
 .btn-clear:hover {
-  background-color: #e5e7eb;
+  background-color: #e2e8f0;
   color: var(--text-heading);
 }
 
 .job-list {
   display: grid;
-  gap: 16px;
+  gap: 20px;
 }
 
 .job-card {
   background-color: var(--card-bg);
-  padding: 24px 32px;
+  padding: 28px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  position: relative;
-}
-
-/* Garis aksen vertikal ala kartu dokumen resmi */
-.job-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 5px;
-  height: 100%;
-  background-color: var(--border-color);
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
 }
 
 .job-card:hover {
-  border-color: var(--input-border);
-  box-shadow: var(--shadow-md);
-}
-
-.job-card:hover::before {
-  background-color: var(--primary);
+  transform: translateY(-4px);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-hover);
 }
 
 .job-card h2 {
   color: var(--text-heading);
   font-size: 1.4rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .job-details {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
 .job-details p {
-  font-size: 0.9rem;
-  color: var(--text-body);
-  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--primary);
+  background-color: var(--primary-light);
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
   display: flex;
   align-items: center;
 }
 
 .apply-btn {
   align-self: flex-start;
-  padding: 10px 24px;
+  padding: 12px 28px;
   background-color: #ffffff;
   color: var(--primary);
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-sm);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-pill);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
 }
 
 .apply-btn:hover {
-  background-color: var(--primary);
+  background: var(--gradient-bg);
   color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 /* ==========================================================================
-   5. FORMULIR & TABEL DASHBOARD (Gaya Administrasi)
+   5. FORMULIR & TABEL DASHBOARD
    ========================================================================== */
 .auth-box {
   background-color: var(--card-bg);
-  max-width: 500px;
+  max-width: 550px;
   margin: 32px auto;
-  padding: 32px;
+  padding: 40px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
 }
 
 .auth-box h2 {
-  text-align: left;
-  margin-bottom: 24px;
+  text-align: center;
+  margin-bottom: 32px;
   color: var(--text-heading);
-  border-bottom: 2px solid var(--primary);
-  padding-bottom: 8px;
-  display: inline-block;
+  font-weight: 800;
+  font-size: 1.6rem;
 }
 
 .auth-box form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .auth-box label {
-  color: var(--text-heading) !important; /* Timpa style inline di JSX */
-  font-size: 0.9rem !important;
+  color: var(--text-heading) !important;
+  font-size: 0.95rem !important;
   font-weight: 600 !important;
-  margin-bottom: -8px;
+  margin-bottom: -10px;
 }
 
 .auth-box input,
-.auth-box select {
-  padding: 12px 16px;
-  background-color: #ffffff;
-  border: 1px solid var(--input-border);
+.auth-box select,
+.auth-box textarea {
+  padding: 14px 20px;
+  background-color: #f8fafc;
+  border: 2px solid transparent;
   border-radius: var(--radius-sm);
   font-size: 1rem;
   color: var(--text-heading);
   font-family: var(--font-main);
+  font-weight: 500;
 }
 
 .auth-box input:focus,
-.auth-box select:focus {
+.auth-box select:focus,
+.auth-box textarea:focus {
   outline: none;
+  background-color: #ffffff;
   border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
 }
 
 .auth-btn {
-  padding: 14px;
-  background-color: var(--primary);
+  padding: 16px;
+  background: var(--gradient-bg);
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--radius-pill);
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 
 .auth-btn:hover {
-  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
 }
 
 /* TABEL DASHBOARD HRD */
 .table-container {
   overflow-x: auto;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   background-color: var(--card-bg);
+  box-shadow: var(--shadow-sm);
 }
 
 table {
@@ -358,88 +372,83 @@ table {
 }
 
 th {
-  background-color: #f8fafc;
-  padding: 14px 20px;
+  background-color: #f1f5f9;
+  padding: 18px 24px;
   color: var(--text-heading);
   font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  border-bottom: 2px solid var(--border-color);
+  font-size: 0.9rem;
 }
 
 td {
-  padding: 16px 20px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-body);
   vertical-align: middle;
 }
 
 tr:hover td {
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
 }
 
-/* Status Labels & Tombol Aksi */
 .status-badge {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
   font-weight: 700;
   display: inline-block;
-  background-color: #f3f4f6;
-  border: 1px solid #d1d5db;
-  color: #374151;
+  background-color: #f1f5f9;
+  color: #64748b;
 }
 
 td .status-accepted {
   background-color: #dcfce7;
   color: #166534;
-  border-color: #bbf7d0;
 }
 td .status-rejected {
-  background-color: #fef2f2;
-  color: #991b1b;
-  border-color: #fecaca;
+  background-color: #fee2e2;
+  color: #b91c1c;
 }
 
 .btn-export {
-  background-color: #15803d; /* Hijau korporat */
+  background-color: #10b981;
   color: #ffffff;
   border: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
 }
 .btn-export:hover {
-  background-color: #166534;
+  transform: translateY(-2px);
+  background-color: #059669;
 }
 
 .action-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .btn-action {
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid transparent;
+  border: none;
 }
 
 .btn-interview {
-  background-color: #fef9c3;
+  background-color: #fef08a;
   color: #854d0e;
-  border-color: #fde047;
 }
 .btn-interview:hover {
-  background-color: #fef08a;
+  background-color: #fde047;
 }
 
 .btn-accept {
   background-color: #dcfce7;
   color: #166534;
-  border-color: #bbf7d0;
 }
 .btn-accept:hover {
   background-color: #bbf7d0;
@@ -447,43 +456,70 @@ td .status-rejected {
 
 .btn-reject {
   background-color: #fee2e2;
-  color: #991b1b;
-  border-color: #fecaca;
+  color: #b91c1c;
 }
 .btn-reject:hover {
   background-color: #fecaca;
 }
 
 .error-text {
-  color: #991b1b;
+  color: #ef4444;
   background-color: #fef2f2;
-  padding: 12px;
+  padding: 16px;
   border-radius: var(--radius-sm);
-  border: 1px solid #fecaca;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   text-align: center;
 }
 
 /* ==========================================================================
-   6. BULLETPROOF MOBILE OPTIMIZATION (Layar HP & Tablet)
+   GAYA KHUSUS DASHBOARD HRD
+   ========================================================================== */
+.hrd-dashboard-box {
+  max-width: 950px !important;
+  width: 100%;
+}
+
+.hrd-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* ==========================================================================
+   6. MOBILE RESPONSIVENESS (Diperbarui untuk gaya melingkar)
    ========================================================================== */
 @media screen and (max-width: 768px) {
-  /* 1. Reset Jarak Kontainer Utama */
   .container {
-    padding: 0 12px 40px;
+    padding: 0 16px 40px;
+  }
+  /* Tambahkan ini di dalam @media screen and (max-width: 768px) */
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-section h1 {
+    font-size: 2.2rem;
   }
 
-  /* 2. Restrukturisasi Navigasi Atas */
+  /* 1. Mencegah Teks Panjang / Link Merusak Layar */
+  td,
+  p,
+  h1,
+  h2,
+  a {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Navbar Menempel di atas pada HP */
   .navbar {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     padding: 16px;
-    margin: 0 0 20px 0;
-    text-align: center;
-    border-radius: 0; /* Menempel penuh di layar atas HP */
-    border-left: none;
-    border-right: none;
+    margin: 10px auto 20px;
+    border-radius: var(--radius-md);
+    max-width: 100%;
   }
 
   .nav-brand {
@@ -494,195 +530,319 @@ td .status-rejected {
     width: 100%;
     justify-content: center;
     gap: 6px;
+    flex-wrap: wrap;
   }
 
   .nav-links button {
     font-size: 0.85rem;
-    padding: 8px 12px;
-    flex: 1; /* Tombol membagi ruang secara adil di HP */
+    padding: 10px 14px;
+    flex: 1;
     text-align: center;
-    white-space: nowrap;
   }
 
-  /* 3. Penyesuaian Ukuran Banner */
   header {
-    padding: 32px 16px;
-    margin-bottom: 20px;
+    padding: 40px 20px;
+    margin-bottom: 24px;
   }
-
   header h1 {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     line-height: 1.3;
   }
-
   header p {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 
-  /* 4. Formulir Pencarian (Search Bar) */
   .search-container {
     flex-direction: column;
     padding: 12px;
+    border-radius: var(--radius-md);
     gap: 8px;
-    margin-bottom: 24px;
+    background-color: transparent;
+    box-shadow: none;
   }
 
   .search-container input {
     width: 100%;
-    font-size: 0.95rem;
+    box-shadow: var(--shadow-sm);
   }
-
   .search-container button {
     width: 100%;
-    padding: 12px;
   }
 
-  /* 5. Kartu Lowongan Kerja */
   .job-card {
-    padding: 20px 16px;
+    padding: 24px 20px;
   }
-
   .job-card h2 {
-    font-size: 1.2rem;
-    margin-bottom: 8px;
+    font-size: 1.25rem;
   }
 
   .job-details {
-    flex-direction: column; /* Detail status berjejer ke bawah agar tidak berhimpitan */
-    gap: 6px;
-    margin-bottom: 16px;
+    flex-direction: column;
+    gap: 8px;
   }
-
-  .job-details p {
-    font-size: 0.85rem;
-  }
-
   .apply-btn {
     width: 100%;
     text-align: center;
-    padding: 12px;
-    font-size: 0.95rem;
   }
 
-  /* 6. Kotak Autentikasi & Form Profil (Sangat Krusial) */
+  /* 2. Mencegah iPhone/iOS otomatis Zoom saat klik input */
+  .auth-box input,
+  .auth-box select,
+  .auth-box textarea,
+  .search-container input {
+    font-size: 16px !important; /* Wajib 16px agar iOS tidak zoom in otomatis */
+  }
+
+  /* 3. Rapikan Padding Form di HP */
   .auth-box {
     margin: 12px auto;
-    padding: 20px 16px; /* Mengurangi padding agar area ketik lebih luas */
+    padding: 24px 16px; /* Kurangi padding samping agar area ketik lebih lega */
     width: 100%;
     max-width: 100%;
   }
 
-  .auth-box h2 {
-    font-size: 1.25rem;
-    margin-bottom: 20px;
+  .hrd-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .hrd-header .btn-export {
+    width: 100%;
+    justify-content: center;
   }
 
-  .auth-box input,
-  .auth-box select {
-    font-size: 0.95rem;
-    padding: 10px 12px;
-    width: 100%; /* Memastikan input tidak melampaui layar */
-  }
-
-  /* 7. TRANSFORMASI TABEL MENJADI KARTU (Ultimate Mobile Table Fix) */
+  /* Tabel menjadi Kartu Bersusun (Responsive) */
   .table-container {
-    border: none;
-    background-color: transparent;
+    box-shadow: none;
+    background: transparent;
   }
-
   table,
   thead,
   tbody,
   th,
   td,
   tr {
-    display: block; /* Mengubah struktur tabel menjadi susunan blok */
+    display: block;
+    width: 100%;
   }
-
-  /* Sembunyikan Header Tabel karena tidak muat di HP */
-  thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  thead {
+    display: none;
   }
 
   tr {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     margin-bottom: 16px;
-    padding: 12px;
+    padding: 0;
     box-shadow: var(--shadow-sm);
+    border: none;
   }
 
   td {
-    border: none;
-    border-bottom: 1px dashed #e5e7eb; /* Garis pemisah antar data di dalam kartu */
-    padding: 10px 0;
-    position: relative;
-    padding-left: 35%; /* Memberi ruang untuk label di sebelah kiri */
-    font-size: 0.9rem;
-    text-align: right; /* Data bergeser ke kanan */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
   }
 
   td:last-child {
     border-bottom: none;
-    text-align: left; /* Tombol aksi kembali ke kiri/penuh */
-    padding-left: 0;
+    background-color: #f8fafc;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
   }
 
-  /* Memunculkan Label Judul Kolom Secara Otomatis */
-  td:nth-of-type(1)::before {
-    content: "Nama Pelamar";
-    position: absolute;
-    left: 0;
+  td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
     font-weight: 700;
-    color: var(--text-heading);
-  }
-  td:nth-of-type(2)::before {
-    content: "Posisi";
-    position: absolute;
-    left: 0;
-    font-weight: 700;
-    color: var(--text-heading);
-  }
-  td:nth-of-type(3)::before {
-    content: "File CV";
-    position: absolute;
-    left: 0;
-    font-weight: 700;
-    color: var(--text-heading);
-  }
-  td:nth-of-type(4)::before {
-    content: "Status";
-    position: absolute;
-    left: 0;
-    font-weight: 700;
-    color: var(--text-heading);
+    color: #94a3b8;
+    margin-bottom: 8px;
   }
 
-  /* Menyesuaikan Tombol Aksi di Dalam Kartu Tabel */
   .action-buttons {
-    width: 100%;
-    margin-top: 8px;
     display: grid;
-    grid-template-columns: repeat(
-      3,
-      1fr
-    ); /* 3 Tombol berjejer rapi membagi layar */
-    gap: 6px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
   }
 
   .btn-action {
     width: 100%;
-    text-align: center;
     padding: 10px 4px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    text-align: center;
   }
 
-  .btn-export {
-    width: 100%;
-    justify-content: center;
-    margin-top: 12px;
+  .features-grid {
+    display: flex !important;
+    flex-direction: column !important; /* Memaksa susunan menjadi vertikal */
+    gap: 16px; /* Jarak antar kotak diperkecil sedikit agar pas di HP */
+    margin-bottom: 40px;
   }
+
+  .feature-card {
+    width: 100%;
+    padding: 24px 20px; /* Menyesuaikan ruang di dalam kotak */
+  }
+
+  .feature-icon {
+    font-size: 2rem; /* Ukuran ikon sedikit disesuaikan untuk layar kecil */
+    margin-bottom: 12px;
+  }
+}
+
+/* ==========================================================================
+   7. PERBAIKAN TOTAL FORM PROFIL (ANTI BOCOR DI HP)
+   ========================================================================== */
+.auth-box input,
+.auth-box select,
+.auth-box textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important; /* Memastikan padding tidak menambah lebar elemen */
+}
+
+/* Khusus tombol Pilih File (PDF) yang sering merusak layout */
+.auth-box input[type="file"] {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important; /* Memotong nama file yang kepanjangan menjadi titik-titik (...) */
+  padding-right: 0 !important;
+}
+
+/* Memastikan Kotak Hijau Penampil CV & Link tidak melampaui batas */
+.auth-box div[style*="background-color: #f0fdf4"] {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+}
+
+.auth-box a[href] {
+  max-width: 100%;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
+/* ==========================================================================
+   8. LANDING PAGE KHUSUS (Hero & Fitur)
+   ========================================================================== */
+.hero-section {
+  text-align: center;
+  background: transparent;
+  color: var(--text-heading);
+  padding: 40px 20px 60px;
+  box-shadow: none;
+  margin-bottom: 20px;
+}
+
+.hero-section::after {
+  display: none; /* Matikan dekorasi bulat lama karena background sekarang bersih */
+}
+
+.hero-badge {
+  display: inline-block;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+
+.hero-section h1 {
+  font-size: 3.2rem;
+  line-height: 1.2;
+  color: var(--text-heading);
+  margin-bottom: 20px;
+}
+
+.text-gradient {
+  background: var(--gradient-bg);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-body);
+  max-width: 650px;
+  margin: 0 auto 32px;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-large {
+  padding: 16px 36px !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn-outline:hover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+/* 3 Kolom Fitur Unggulan */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 60px;
+}
+
+.feature-card {
+  background-color: var(--card-bg);
+  padding: 32px 24px;
+  border-radius: var(--radius-md);
+  text-align: center;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-light);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+.feature-card h3 {
+  color: var(--text-heading);
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+}
+
+.feature-card p {
+  font-size: 0.95rem;
+}
+
+.job-board-section {
+  padding-top: 20px;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-bottom: 24px;
 }

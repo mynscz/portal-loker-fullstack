@@ -196,7 +196,9 @@ app.put("/api/applications/:id", auth, async (req, res) => {
 app.get("/api/profile", auth, async (req, res) => {
   try {
     const user = await pool.query(
-      "SELECT id, name, email, role, phone, skills, bio, cv_link FROM users WHERE id = $1",
+      `SELECT id, name, email, role, phone, address, education, experience, skills, bio, cv_link, 
+             birth_place, birth_date, gender, marital_status, height, weight 
+             FROM users WHERE id = $1`,
       [req.user.id],
     );
     if (user.rows.length === 0) {
@@ -209,22 +211,52 @@ app.get("/api/profile", auth, async (req, res) => {
   }
 });
 
-// Perbarui Data Profil Pengguna (DENGAN FILE UPLOAD)
+// 2. Perbarui Data Profil Pengguna (Super Lengkap)
 app.put("/api/profile", auth, upload.single("cv_file"), async (req, res) => {
   try {
-    const { phone, skills, bio } = req.body;
-    let cv_link = req.body.cv_link; // cv_link lama (jika tidak upload file baru)
+    const {
+      phone,
+      address,
+      education,
+      experience,
+      skills,
+      bio,
+      birth_place,
+      birth_date,
+      gender,
+      marital_status,
+      height,
+      weight,
+    } = req.body;
 
-    // Jika ada file fisik baru yang diunggah, timpa cv_link dengan path folder file baru
+    let cv_link = req.body.cv_link;
     if (req.file) {
       cv_link = "/uploads/" + req.file.filename;
     }
 
     const updatedProfile = await pool.query(
       `UPDATE users 
-             SET phone = $1, skills = $2, bio = $3, cv_link = $4 
-             WHERE id = $5 RETURNING id, name, email, role, phone, skills, bio, cv_link`,
-      [phone, skills, bio, cv_link, req.user.id],
+             SET phone = $1, address = $2, education = $3, experience = $4, skills = $5, bio = $6, 
+                 cv_link = $7, birth_place = $8, birth_date = $9, gender = $10, marital_status = $11, 
+                 height = $12, weight = $13
+             WHERE id = $14 
+             RETURNING *`,
+      [
+        phone,
+        address,
+        education,
+        experience,
+        skills,
+        bio,
+        cv_link,
+        birth_place,
+        birth_date,
+        gender,
+        marital_status,
+        height,
+        weight,
+        req.user.id,
+      ],
     );
 
     res.json({
